@@ -2,21 +2,44 @@ import React from "react";
 import { AppUI } from "./AppUI";
 // import './App.css';
 
-const defaultTodos = [
-  { text: 'Cortar cebolla', completed:false },
-  { text: 'Tomar el curso de intro a React', completed:true },
-  { text: 'Llorar con la llorona', completed:false },
-]
+// const defaultTodos = [
+//   { text: 'Cortar cebolla', completed:false },
+//   { text: 'Tomar el curso de intro a React', completed:true },
+//   { text: 'Llorar con la llorona', completed:false },
+// ]
+
+function useLocalStorage(itemName,initialValue){
+  const localStorageItem = localStorage.getItem(itemName);
+  let parsedItem;
+ if(!localStorageItem){
+  localStorage.setItem(itemName, JSON.stringify(initialValue));
+  parsedItem= initialValue;
+ }else{
+  parsedItem = JSON.parse(localStorageItem);
+ }
+ const [item, setItem] = React.useState(parsedItem);
+
+ const saveItem = (newTodos) => {
+  const stringifiedtodos = JSON.stringify(newTodos);
+  localStorage.setItem(itemName, stringifiedtodos);
+  setItem(newTodos);
+};
+
+return[
+  item,
+  saveItem,
+];
+}
 
 function App() {
-  const [todos, setTodos] = React.useState(defaultTodos);
+  const[todos, saveTodos] = useLocalStorage('TODOS_V2', []);
+
   const [searchValue, setSearchValue] = React.useState('');
 
   const completedTodos = todos.filter(todo => !!todo.completed).length;
+
   const totalTodos = todos.length;
-
   let searchedTodos = [];
-
   if(!searchValue.length >= 1){
     searchedTodos = todos;
   }else{
@@ -26,18 +49,21 @@ function App() {
       return todoText.includes(searchText);
     });
   }
+
+
+
   const completeTodo = (text) => {
     const todoIndex = todos.findIndex(todo => todo.text === text);
     const newTodos = [...todos];
     newTodos[todoIndex].completed = true;
-    setTodos(newTodos);
+    saveTodos(newTodos);
   };
 
   const deleteTodo = (text) => {
     const todoIndex = todos.findIndex(todo => todo.text === text);
     const newTodos = [...todos];
     newTodos.splice(todoIndex, 1);
-    setTodos(newTodos);
+    saveTodos(newTodos);
   };
   return (
     <AppUI 
